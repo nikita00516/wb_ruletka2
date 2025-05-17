@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Рулетка WB</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(180deg, #2c004b, #6a0080);
+      color: white;
+      text-align: center;
+    }
+    .container { padding: 20px; }
+    .wheel-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 20px auto;
+    }
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 10px solid #ff00c3;
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+      transition: transform 5s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+    .wheel .segment {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      background: #ff44d0;
+      color: white;
+      transform-origin: 100% 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .play-button {
+      background: #ff00c3;
+      border: none;
+      color: white;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      font-size: 30px;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    .pointer {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 20px solid #ff00c3;
+      z-index: 10;
+    }
+    .title {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Рулетка WB</h2>
+    <div class="wheel-container">
+      <div class="pointer"></div>
+      <div class="wheel" id="wheel1"></div>
+      <div class="wheel" id="wheel2" style="width: 220px; height: 220px; top: 40px; left: 40px; border-width: 8px;"></div>
+      <div class="wheel" id="wheel3" style="width: 140px; height: 140px; top: 80px; left: 80px; border-width: 6px;"></div>
+    </div>
+    <button class="play-button" onclick="startSpin()">▶</button>
+    <div class="title">1 Вращение</div>
+  </div>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      Telegram.WebApp.ready();
+      Telegram.WebApp.expand();
+
+      const wheelsData = [
+        {
+          el: document.getElementById("wheel1"),
+          prizes: ["iPhone 16 Pro", "30000₽", "0₽", "5000₽", "8000₽", "1000₽", "2000₽", "500₽", "0₽", "10000₽", "0₽", "15000₽"],
+          stopIndex: 2
+        },
+        {
+          el: document.getElementById("wheel2"),
+          prizes: ["3000₽", "1000₽", "0₽", "500₽", "0₽", "500₽", "1000₽", "3000₽"],
+          stopIndex: 2
+        },
+        {
+          el: document.getElementById("wheel3"),
+          prizes: ["15000₽", "0₽", "1000₽", "5000₽", "10000₽", "500₽"],
+          stopIndex: 3
+        }
+      ];
+
+      wheelsData.forEach(wheel => {
+        const angle = 360 / wheel.prizes.length;
+        wheel.prizes.forEach((prize, i) => {
+          const segment = document.createElement("div");
+          segment.className = "segment";
+          segment.style.transform = `rotate(${i * angle}deg) translate(0, -100%)`;
+          segment.innerHTML = prize;
+          wheel.el.appendChild(segment);
+        });
+      });
+
+      function spinWheel(wheel, rounds, delay, callback) {
+        const angle = 360 / wheel.prizes.length;
+        const targetAngle = wheel.stopIndex * angle + angle / 2;
+        const totalRotation = 360 * rounds - targetAngle;
+        setTimeout(() => {
+          wheel.el.style.transition = "none";
+          wheel.el.style.transform = "rotate(0deg)";
+          requestAnimationFrame(() => {
+            wheel.el.style.transition = "transform 5s ease-out";
+            wheel.el.style.transform = `rotate(${totalRotation}deg)`;
+            setTimeout(callback, 5200);
+          });
+        }, delay);
+      }
+
+      window.startSpin = function () {
+        spinWheel(wheelsData[0], 5, 0, () => {
+          spinWheel(wheelsData[1], 5, 0, () => {
+            spinWheel(wheelsData[2], 5, 0, () => {
+              alert("Вы выиграли: 5000₽");
+            });
+          });
+        });
+      };
+    });
+  </script>
+</body>
+</html>
